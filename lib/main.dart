@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+
+import 'question.dart';
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +29,110 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  static const List<Question> _questionData = [
+    Question(
+      questionText: 'Some cats are actually allergic to humans',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText: 'You can lead a cow down stairs but not up stairs.',
+      questionAnswer: false,
+    ),
+    Question(
+      questionText:
+          'Approximately one quarter of human bones are in the feet.',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText: 'A slug\'s blood is green.',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText: 'Buzz Aldrin\'s mother\'s maiden name was "Moon".',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText: 'It is illegal to pee in the Ocean in Portugal.',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText:
+          'No piece of square dry paper can be folded in half more than 7 times.',
+      questionAnswer: false,
+    ),
+    Question(
+      questionText:
+          'In London, UK, if you happen to die in the House of Parliament, you are technically entitled to a state funeral, because the building is considered too sacred a place.',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText:
+          'The loudest sound produced by any animal is 188 decibels. That animal is the African Elephant.',
+      questionAnswer: false,
+    ),
+    Question(
+      questionText:
+          'The total surface area of two human lungs is approximately 70 square metres.',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText: 'Google was originally called "Backrub".',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText:
+          'Chocolate affects a dog\'s heart and nervous system; a few ounces are enough to kill a small dog.',
+      questionAnswer: true,
+    ),
+    Question(
+      questionText:
+          'In West Virginia, USA, if you accidentally hit an animal with your car, you are free to take it home to eat.',
+      questionAnswer: true,
+    ),
+  ];
+
+  late final List<Question> _questionBank;
+
+  int _questionIndex = 0;
+  int _correctAnswers = 0;
+  bool _isQuizFinished = false;
+  final List<Icon> _scoreKeeper = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _questionBank = List<Question>.from(_questionData)
+      ..shuffle(Random());
+  }
+
+  void _checkAnswer(bool userPickedAnswer) {
+    if (_isQuizFinished) {
+      return;
+    }
+
+    final Question currentQuestion = _questionBank[_questionIndex];
+    final bool isCorrect = userPickedAnswer == currentQuestion.questionAnswer;
+
+    setState(() {
+      _scoreKeeper.add(
+        Icon(
+          isCorrect ? Icons.check : Icons.close,
+          color: isCorrect ? Colors.green : Colors.red,
+        ),
+      );
+
+      if (isCorrect) {
+        _correctAnswers++;
+      }
+
+      if (_questionIndex >= _questionBank.length - 1) {
+        _isQuizFinished = true;
+      } else {
+        _questionIndex++;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,9 +145,11 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                _isQuizFinished
+                    ? 'Quiz complete! Final score: $_correctAnswers/${_questionBank.length}'
+                    : _questionBank[_questionIndex].questionText,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 25.0,
                   color: Colors.white,
                 ),
@@ -50,41 +160,65 @@ class _QuizPageState extends State<QuizPage> {
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(15.0),
-            child: FlatButton(
-              textColor: Colors.white,
-              color: Colors.green,
-              child: Text(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text(
                 'True',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20.0,
                 ),
               ),
-              onPressed: () {
-                //The user picked true.
-              },
+              onPressed: _isQuizFinished ? null : () => _checkAnswer(true),
             ),
           ),
         ),
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(15.0),
-            child: FlatButton(
-              color: Colors.red,
-              child: Text(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text(
                 'False',
                 style: TextStyle(
                   fontSize: 20.0,
                   color: Colors.white,
                 ),
               ),
-              onPressed: () {
-                //The user picked false.
-              },
+              onPressed: _isQuizFinished ? null : () => _checkAnswer(false),
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12.0,
+            vertical: 8.0,
+          ),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _scoreKeeper,
+                  ),
+                ),
+              ),
+              Text(
+                'Score: $_correctAnswers/${_questionBank.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
